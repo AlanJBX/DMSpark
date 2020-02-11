@@ -5,6 +5,7 @@
 - Le projet permet de nettoyer et préparer des datasets pour une analyse de données ultérieure.
 - La mise en oeuvre du projet se trouve décrite ci-dessous
 - Le jobspark 'process.py' se trouve dans le dossier '/data-ingestion-job/src/', il est commenté afin d'en comprendre le fonctionnement
+- La dernière partie du jobspark n'a pas pu être débuggée, elle permettait de créer de nouvelles tables pour offrir des données supplémentaires aux analystes.
 
 ## Mise en place des dossiers
 
@@ -20,6 +21,7 @@ mkdir ~/Desktop/DMSpark
 mkdir ~/Desktop/DMSpark/datasets
 ``` 
 Puis déplacer/copier votre dossier 'spark-2.4.4-bin-hadoop2.7' dans /DMSpark/
+
 Puis se positionner dans le dossier du DM
 
 ```bash
@@ -44,7 +46,7 @@ Adresse et géolocalisation des établissements d'enseignement du premier et sec
 
 [Lien de téléchargement](https://www.data.gouv.fr/fr/datasets/r/b3b26ad1-a143-4651-afd6-dde3908196fc)
 
-Le fichier téléchargé doit être a ce path : `~/Downloads/fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre`
+Le fichier téléchargé doit être a ce path : `~/Downloads/fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre.csv`
 
 + Préparer les datasets
 
@@ -70,7 +72,7 @@ Vous devriez alors avoir l'architecture suivante :
   |- lancement
      |- 'dossier github'
   |- spark-2.4.4-bin-hadoop2.7
-     |- 'dossier spartk'
+     |- 'dossier spark'
 ``` 
 
 ## Lancement du jobspark
@@ -82,7 +84,10 @@ Vous devriez alors avoir l'architecture suivante :
 
 + Ouvrir le docker
 
-Après avoir vérifier que l'application 'Docker' est allumée.
+Après avoir vérifier que l'application 'Docker' est allumée et bien configurée (*i.e* :
+```bash
+docker pull stebourbi/sio:pyspark
+``` 
 
 ```bash
 docker run --rm -ti -v ~/Desktop/DMSpark/datasets:/data -v $(pwd)/data-ingestion-job/src:/src  -p 4040:4040 --entrypoint bash stebourbi/sio:pyspark'
@@ -93,6 +98,13 @@ Je suis désormais dans le docker. Je vérifie la présence de mes fichiers :
 root@****:/ ls data
 ```
 Je trouve : ecoles.csv et logements.csv
+
+Il faut veiller à ce qu'il n'y ait pas de dossier 'data_ecoles', 'data_logs' ou 'data_out'. Dans le cas contraire :
+
+```bash
+root@****:/ rm -rf data/data_*
+``` 
+
 
 ```bash
 root@****:/ ls /src
