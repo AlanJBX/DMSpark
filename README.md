@@ -1,7 +1,5 @@
 # Devoir Maison : Spark
 
-MAJ : 11 février, 15h
-
 ## Présentation du projet
 
 - Le projet permet de nettoyer et préparer des datasets pour une analyse de données ultérieure.
@@ -86,7 +84,8 @@ Vous devriez alors avoir l'architecture suivante :
 
 + Ouvrir le docker
 
-Après avoir vérifier que l'application 'Docker' est allumée et bien configurée 
+Après avoir vérifier que l'application 'Docker' est allumée et bien configurée.
+
 
 ```bash
 docker run --rm -ti -v ~/Desktop/DMSpark/datasets:/data -v $(pwd)/data-ingestion-job/src:/src  -p 4040:4040 --entrypoint bash stebourbi/sio:pyspark'
@@ -116,7 +115,13 @@ Je trouve : process.py
 Je peux désormais lancer le jobspark.
 
 ```bash
-root@****:/ /spark-2.4.4-bin-hadoop2.7/bin/spark-submit /src/process.py -l /data/logements.csv -e /data/ecoles.csv -o /data/data_out
+root@****:/ /spark-2.4.4-bin-hadoop2.7/bin/spark-submit /src/process.py -l /data/logements.csv -e /data/ecoles.csv
+```
+
+Il est possible de rajouter un argument (optionnel) afin de sélectionner une région particulière.
+
+```bash
+root@****:/ //spark-2.4.4-bin-hadoop2.7/bin/spark-submit /src/process.py -l /data/logements.csv -e /data/ecoles.csv -r Bretagne
 ```
 
 + Récupérer les données et les utiliser.
