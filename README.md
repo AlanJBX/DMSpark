@@ -9,9 +9,9 @@
 ## Mise en place des dossiers
 
 - Objectifs:
-  préparer les dossiers
-  télécharger les datasets
-  préparer les datasets
+  . préparer les dossiers
+  . télécharger les datasets
+  . préparer les datasets
 
 + Préparer les dossiers
 
@@ -76,9 +76,9 @@ Vous devriez alors avoir l'architecture suivante :
 ## Lancement du jobspark
 
 - Objectifs:
-  ouvrir le docker
-  lancer le traitement des données
-  récupérer les données et les utiliser
+  . ouvrir le docker
+  . lancer le traitement des données
+  . récupérer les données et les utiliser
 
 + Ouvrir le docker
 
