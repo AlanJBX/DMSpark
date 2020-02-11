@@ -86,10 +86,7 @@ Vous devriez alors avoir l'architecture suivante :
 
 + Ouvrir le docker
 
-Après avoir vérifier que l'application 'Docker' est allumée et bien configurée (*i.e* :
-```bash
-docker pull stebourbi/sio:pyspark
-``` 
+Après avoir vérifier que l'application 'Docker' est allumée et bien configurée 
 
 ```bash
 docker run --rm -ti -v ~/Desktop/DMSpark/datasets:/data -v $(pwd)/data-ingestion-job/src:/src  -p 4040:4040 --entrypoint bash stebourbi/sio:pyspark'
