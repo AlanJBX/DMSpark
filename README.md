@@ -1,5 +1,7 @@
 # Devoir Maison : Spark
 
+MAJ : version du 11.02, 16h10
+
 ## Présentation du projet
 
 - Le projet permet de nettoyer et préparer des datasets pour une analyse de données ultérieure.
