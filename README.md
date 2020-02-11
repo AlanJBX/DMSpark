@@ -1,13 +1,19 @@
 # Devoir Maison : Spark
 
+## Présentation du projet
+
+- Le projet permet de nettoyer et préparer des datasets pour une analyse de données ultérieure.
+- La mise en oeuvre du projet se trouve décrite ci-dessous
+- Le jobspark 'process.py' se trouve dans le dossier '/data-ingestion-job/src/', il est commenté afin d'en comprendre le fonctionnement
+
 ## Mise en place des dossiers
 
 - Objectifs:
-+ préparer les dossiers
-+ télécharger les datasets
-+ préparer les datasets
+  préparer les dossiers
+  télécharger les datasets
+  préparer les datasets
 
-+ préparer les dossiers
++ Préparer les dossiers
 
 ```bash
 mkdir ~/Desktop/DMSpark
@@ -26,21 +32,21 @@ git clone git@github.com:AlanJBX/DMSpark.git
 mv DMSpark lancement
 ``` 
 
-+ télécharger les datasets
++ Télécharger les datasets
 
 Demandes de valeurs foncières géolocalisées: https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres-geolocalisees/
 
 https://cadastre.data.gouv.fr/data/etalab-dvf/latest/csv/2019/full.csv.gz
 
-Le fichier téléchargé doit etre a ce path : `~/Downloads/full.csv.gz`.
+Le fichier téléchargé doit être a ce path : `~/Downloads/full.csv.gz`.
 
 Adresse et géolocalisation des établissements d'enseignement du premier et second degrés: https://www.data.gouv.fr/fr/datasets/adresse-et-geolocalisation-des-etablissements-denseignement-du-premier-et-second-degres-1/
 
 https://www.data.gouv.fr/fr/datasets/r/b3b26ad1-a143-4651-afd6-dde3908196fc
 
-Le fichier téléchargé doit etre a ce path : `~/Downloads/fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre`
+Le fichier téléchargé doit être a ce path : `~/Downloads/fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre`
 
-+ préparer les datasets
++ Préparer les datasets
 
 Toujours en étant dans le dossier 'lancement'
 
@@ -70,9 +76,9 @@ Vous devriez alors avoir l'architecture suivante :
 ## Lancement du jobspark
 
 - Objectifs:
-+ ouvrir le docker
-+ lancer le traitement des données
-+ récupérer les données et les utiliser
+  ouvrir le docker
+  lancer le traitement des données
+  récupérer les données et les utiliser
 
 + Ouvrir le docker
 
