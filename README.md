@@ -9,12 +9,9 @@
 ## Mise en place des dossiers
 
 - Objectifs:
-  . préparer les dossiers
-
-  . télécharger les datasets
-
-  . préparer les datasets
-  
+   * préparer les dossiers
+   * télécharger les datasets
+   * préparer les datasets
 
 + Préparer les dossiers
 
@@ -39,13 +36,13 @@ mv DMSpark lancement
 
 Demandes de valeurs foncières géolocalisées: https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres-geolocalisees/
 
-https://cadastre.data.gouv.fr/data/etalab-dvf/latest/csv/2019/full.csv.gz
+[Lien de téléchargement](https://cadastre.data.gouv.fr/data/etalab-dvf/latest/csv/2019/full.csv.gz)
 
 Le fichier téléchargé doit être a ce path : `~/Downloads/full.csv.gz`.
 
 Adresse et géolocalisation des établissements d'enseignement du premier et second degrés: https://www.data.gouv.fr/fr/datasets/adresse-et-geolocalisation-des-etablissements-denseignement-du-premier-et-second-degres-1/
 
-https://www.data.gouv.fr/fr/datasets/r/b3b26ad1-a143-4651-afd6-dde3908196fc
+[Lien de téléchargement](https://www.data.gouv.fr/fr/datasets/r/b3b26ad1-a143-4651-afd6-dde3908196fc)
 
 Le fichier téléchargé doit être a ce path : `~/Downloads/fr-en-adresse-et-geolocalisation-etablissements-premier-et-second-degre`
 
@@ -79,11 +76,9 @@ Vous devriez alors avoir l'architecture suivante :
 ## Lancement du jobspark
 
 - Objectifs:
-  . ouvrir le docker
-
-  . lancer le traitement des données
-
-  . récupérer les données et les utiliser
+   * ouvrir le docker
+   * lancer le traitement des données
+   * récupérer les données et les utiliser
 
 + Ouvrir le docker
 
