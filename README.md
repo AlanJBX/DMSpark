@@ -5,7 +5,7 @@
 - Le projet permet de nettoyer et préparer des datasets pour une analyse de données ultérieure.
 - La mise en oeuvre du projet se trouve décrite ci-dessous
 - Le jobspark 'process.py' se trouve dans le dossier '/data-ingestion-job/src/', il est commenté afin d'en comprendre le fonctionnement
-- La dernière partie du jobspark n'a pas pu être débuggée, elle permettait de créer de nouvelles tables pour offrir des données supplémentaires aux analystes.
+- La dernière partie du jobspark est en cours de débuggage, elle permet de créer de nouvelles tables pour offrir des données supplémentaires aux analystes.
 
 ## Mise en place des dossiers
 
