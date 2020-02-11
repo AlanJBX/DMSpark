@@ -223,7 +223,7 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     # Je renomme ma variable pour plus de lisibilité et de facilité à rentrer les commandes.
     data_ecoles = ecoles
 
-    # Je sauvegarde le dataset 
+    # Je sauvegarde le dataset relatif aux écoles nettoyées et prêtes à l'analyse
     ########################################
     data_ecoles.write.parquet('/data/data_ecoles')
     ########################################
@@ -260,11 +260,12 @@ def process(spark, fichier_logements, fichier_ecoles, output):
 
     # Je défini le prix du mètre carré du terrain.
     logementsV3 = logementsV2.withColumn('prix_metre_carre',logementsV2['valeur_fonciere']/logementsV2['surface_fonciere'])
+    # Certains prix sont 'sales' : prix au mètre carré = 10^-5 euros ?!
 
     # Je renomme ma variable pour plus de lisibilité et de facilité à rentrer les commandes.
     data_log = logementsV3
 
-    # Je sauvegarde le dataset
+    # Je sauvegarde le dataset relatif aux logements nettoyés et prêts à l'analyse
     ########################################
     data_log.write.parquet('/data/data_log')
     ########################################
@@ -295,13 +296,24 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     print("CREATION DE TABLES ANNEXES")
     print("--------------------------")
 
+    ####################################################################################
+    # L'idée des tables suivantes est de construire plusieurs tables différentes       #
+    # Cela permettrait par la suite de les utiliser sans avoir à refaire les calculs   #
+    # Cependant, les tables se basent sur le calcul de la distance entre les logements #
+    # et les écoles. Bien que la table et les valeurs soient crées, il n'es pas        #
+    # possible de la manipuler afin d'extraire les informations nécessaires.           #
+    # L'erreur renvoyée étant :                                                        #
+    # AttributeError: 'NoneType' object has no attribute '_jvm'                        #
+    ####################################################################################
+
+    ##### Ce bloc de commande ne fonctionne actuellement pas #####
     # Requete cross-join liant les logements aux écoles distants maxium de 50km
     # La valeur "50" est fixée de manière arbitraire.
-    log_cross_ecoles = data_log.crossJoin(data_ecoles).withColumn('distance',UDFdistance(data_log.latitude_log,data_log.longitude_log,data_ecoles.latitude_ecole,data_ecoles.longitude_ecole).cast(T.IntegerType()))
-    log_cross_ecolesV2 = log_cross_ecoles.where(log_cross_ecoles.distance <= 50)
+    #log_cross_ecoles = data_log.crossJoin(data_ecoles).withColumn('distance',UDFdistance(data_log.latitude_log,data_log.longitude_log,data_ecoles.latitude_ecole,data_ecoles.longitude_ecole).cast(T.IntegerType()))
+    #log_cross_ecolesV2 = log_cross_ecoles.where(log_cross_ecoles.distance <= 50)
 
     # Je nettoye mes données en supprimant les latitudes et longitudes qui ne servent plus à rien après le calcul de la distante.
-    log_cross_ecolesV2 = log_cross_ecolesV2.drop('latitude_ecole','longitude_ecole','latitude_log','longitude_log')
+    #log_cross_ecolesV2 = log_cross_ecolesV2.drop('latitude_ecole','longitude_ecole','latitude_log','longitude_log')
 
     #>>> log_cross_ecolesV2.printSchema()
     #root
@@ -323,7 +335,8 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     # |-- distance: double (nullable = true)
 
     # Je renomme ma variable pour plus de lisibilité  et de facilité à rentrer les commandes.
-    data_cross = log_cross_ecolesV2
+    #data_cross = log_cross_ecolesV2
+    ##### Ce bloc de commande ne fonctionne actuellement pas #####
 
     ##### Ce bloc de commande ne fonctionne actuellement pas #####
     # Je sauvegarde le dataset
