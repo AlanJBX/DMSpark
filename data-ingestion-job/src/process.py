@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import *
+import pyspark.sql.functions as F
 import argparse
 
 # Importation des libraries utiles
@@ -44,7 +44,7 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     .withColumnRenamed('Adresse','adresse')\
     .withColumnRenamed('Lieu dit','lieudit')\
     .withColumnRenamed('Boite postale','boite_postale')\
-    .withColumnRenamed('Code postal','code_postal')\
+    .withColumnRenamed('Code postal','code_postal_ecole')\
     .withColumnRenamed("Localite d'acheminement",'localite_acheminement')\
     .withColumnRenamed('Commune','commune')\
     .withColumnRenamed('Coordonnee X','coordonne_x_ecole')\
@@ -79,7 +79,7 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     # |-- adresse: string (nullable = true)
     # |-- lieudit: string (nullable = true)
     # |-- boite_postale: string (nullable = true)
-    # |-- code_postal: integer (nullable = true)
+    # |-- code_postal_ecole: integer (nullable = true)
     # |-- localite_acheminement: string (nullable = true)
     # |-- commune: string (nullable = true)
     # |-- coordonne_x_ecole: double (nullable = true)
@@ -196,11 +196,11 @@ def process(spark, fichier_logements, fichier_ecoles, output):
 
     # Fonction permettant de déterminer la valeur maximum de plusieurs colonnes sur une même ligne
     def row_max(*cols):
-        return reduce(lambda x, y: when(x > y, x).otherwise(y),[col(c) if isinstance(c, str) else c for c in cols])
+        return reduce(lambda x, y: F.when(x > y, x).otherwise(y),[F.col(c) if isinstance(c, str) else c for c in cols])
 
     # Afin de définir les fonctions comme "user defined function"
-    UDFdegre = udf(degre)
-    UDFdistance = udf(distance)
+    UDFdegre = F.udf(degre)
+    UDFdistance = F.udf(distance)
 
     ################################
     # NETTOYAGE DU DATASET "ECOLE" #
@@ -214,7 +214,7 @@ def process(spark, fichier_logements, fichier_ecoles, output):
 
     # Je garde les informations lisibles (pas de code humainement illisible et information non parlante)
     # Je garde uniquement le code_etablissment me permettant éventuellement de retrouver les données dans la table initiale
-    ecoles = ecoles.select("code_etablissement","appellation_officielle","commune","secteur_public_prive","degre_etude","longitude_ecole","latitude_ecole")
+    ecoles = ecoles.select("code_etablissement","appellation_officielle","code_postal_ecole","secteur_public_prive","degre_etude","longitude_ecole","latitude_ecole")
 
     # Je supprime les valeurs null qui impacteront les analyses sur la distance entre les logements et les écoles
     # Le choix est arbitraire. Il est également envisageable d'étudier le lien entre les entités par les communes plutôt que par les distances
@@ -236,7 +236,7 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     #root
     # |-- code_etablissement: string (nullable = true)
     # |-- appellation_officielle: string (nullable = true)
-    # |-- commune: string (nullable = true)
+    # |-- code_postal_ecole : integer (nullable = true)
     # |-- secteur_public_prive: string (nullable = true)
     # |-- longitude_ecole: double (nullable = true)
     # |-- latitude_ecole: double (nullable = true)
@@ -283,7 +283,7 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     # |-- adresse_numero: integer (nullable = true)
     # |-- adresse_suffixe: string (nullable = true)
     # |-- adresse_nom_voie: string (nullable = true)
-    # |-- code_postal: integer (nullable = true)
+    # |-- code_postal : integer (nullable = true)
     # |-- nom_commune: string (nullable = true)
     # |-- valeur_fonciere: double (nullable = true)
     # |-- surface_fonciere: integer (nullable = true)
@@ -296,24 +296,18 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     print("CREATION DE TABLES ANNEXES")
     print("--------------------------")
 
-    ####################################################################################
-    # L'idée des tables suivantes est de construire plusieurs tables différentes       #
-    # Cela permettrait par la suite de les utiliser sans avoir à refaire les calculs   #
-    # Cependant, les tables se basent sur le calcul de la distance entre les logements #
-    # et les écoles. Bien que la table et les valeurs soient crées, il n'es pas        #
-    # possible de la manipuler afin d'extraire les informations nécessaires.           #
-    # L'erreur renvoyée étant :                                                        #
-    # AttributeError: 'NoneType' object has no attribute '_jvm'                        #
-    ####################################################################################
+    # Choix arbitraire de département afin de réduire la taille du dataset et permettre les tests.
+    data_ecoles = data_ecoles.where((data_ecoles.code_postal_ecole >= 56000) & (data_ecoles.code_postal_ecole <= 56999))
+    data_log = data_log.where((data_log.code_postal >= 56000) & (data_log.code_postal <= 56999))
+    # En modifiant les tables, il est possible de faire la sélection sur les régions, les académies,...
 
-    ##### Ce bloc de commande ne fonctionne actuellement pas #####
     # Requete cross-join liant les logements aux écoles distants maxium de 50km
     # La valeur "50" est fixée de manière arbitraire.
-    #log_cross_ecoles = data_log.crossJoin(data_ecoles).withColumn('distance',UDFdistance(data_log.latitude_log,data_log.longitude_log,data_ecoles.latitude_ecole,data_ecoles.longitude_ecole).cast(T.IntegerType()))
-    #log_cross_ecolesV2 = log_cross_ecoles.where(log_cross_ecoles.distance <= 50)
+    log_cross_ecoles = data_log.crossJoin(data_ecoles).withColumn('distance',UDFdistance(data_log.latitude_log,data_log.longitude_log,data_ecoles.latitude_ecole,data_ecoles.longitude_ecole).cast(T.IntegerType()))
+    log_cross_ecolesV2 = log_cross_ecoles.where(log_cross_ecoles.distance <= 50)
 
     # Je nettoye mes données en supprimant les latitudes et longitudes qui ne servent plus à rien après le calcul de la distante.
-    #log_cross_ecolesV2 = log_cross_ecolesV2.drop('latitude_ecole','longitude_ecole','latitude_log','longitude_log')
+    log_cross_ecolesV2 = log_cross_ecolesV2.drop('latitude_ecole','longitude_ecole','latitude_log','longitude_log')
 
     #>>> log_cross_ecolesV2.printSchema()
     #root
@@ -329,38 +323,44 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     # |-- prix_metre_carre: double (nullable = true)
     # |-- code_etablissement: string (nullable = true)
     # |-- appellation_officielle: string (nullable = true)
-    # |-- commune: string (nullable = true)
+    # |-- code_postal_ecole : integer (nullable = true)
     # |-- secteur_public_prive: string (nullable = true)
     # |-- degre_etude: string (nullable = true)
     # |-- distance: double (nullable = true)
 
     # Je renomme ma variable pour plus de lisibilité  et de facilité à rentrer les commandes.
-    #data_cross = log_cross_ecolesV2
-    ##### Ce bloc de commande ne fonctionne actuellement pas #####
+    data_cross = log_cross_ecolesV2
 
-    ##### Ce bloc de commande ne fonctionne actuellement pas #####
     # Je sauvegarde le dataset
     ########################################
-    #data_cross.write.parquet(output)
+    data_cross.write.parquet('/data/data_cross')
     ########################################
     # Pour ouvrir le fichier plus tard : spark.read.parquet("./data/data_cross")
-    #print("..........")
-    #print("Sauvegarde")
-    #print("..........")
-    ##### Ce bloc de commande ne fonctionne actuellement pas #####
+    print("..........")
+    print("Sauvegarde")
+    print("..........")
 
-    ##### Ce bloc de commande ne fonctionne actuellement pas #####
     # Je calcule le prix moyen des logements à 50km à la ronde des établissements
-    #moyenne_tarifs = log_cross_ecoles.groupby(log_cross_ecoles['code_etablissement']).agg(F.mean(log_cross_ecoles.prix_metre_carre).alias('moyenne_prix_surface'))
-    ##### Ce bloc de commande ne fonctionne actuellement pas #####
+    moyenne_tarifs = data_cross.groupby(data_cross.code_etablissement).agg(F.mean(data_cross.prix_metre_carre).alias('moyenne_tarifs'))
+    moyenne_tarifs = moyenne_tarifs.join(data_ecoles,"code_etablissement")
+
+    # Je sauvegarde le dataset
+    ########################################
+    moyenne_tarifs.write.parquet('/data/data_tarifs')
+    ########################################
+    # Pour ouvrir le fichier plus tard : spark.read.parquet("./data/data_tarifs")
+    print("..........")
+    print("Sauvegarde")
+    print("..........")
 
     ##### Ce bloc de commande ne fonctionne actuellement pas #####
     # On recherche les écoles les plus proches de chaque logement et on les unie dans une même table.
-    #maternelle_proche = data_cross.where((data_cross.degre_etude == 'MATERNELLE') & (data_cross.distance == min(data_cross.distance)))
-    #primaire_proche = data_cross.where((data_cross.Degre_etude == 'PRIMAIRE') & (data_cross.Distance == min(data_cross.Distance)))
-    #college_proche = data_cross.where((data_cross.Degre_etude == 'COLLEGE') & (data_cross.Distance == min(data_cross.Distance)))
-    #lycee_proche = data_cross.where((data_cross.Degre_etude == 'LYCEE') & (data_cross.Distance == min(data_cross.Distance)))
-    #ecoles_proches = ((maternelle_proche.union(primaire_proche)).union(college_proche)).union(lycee_proche)
+    maternelle_proche = data_cross.where((data_cross.degre_etude == 'MATERNELLE') & (data_cross.distance == min(data_cross.distance)))
+    primaire_proche = data_cross.where((data_cross.Degre_etude == 'PRIMAIRE') & (data_cross.Distance == min(data_cross.Distance)))
+    college_proche = data_cross.where((data_cross.Degre_etude == 'COLLEGE') & (data_cross.Distance == min(data_cross.Distance)))
+    lycee_proche = data_cross.where((data_cross.Degre_etude == 'LYCEE') & (data_cross.Distance == min(data_cross.Distance)))
+    ecoles_proches = ((maternelle_proche.union(primaire_proche)).union(college_proche)).union(lycee_proche)
+    ecoles_proches.printSchema()
     ##### Ce bloc de commande ne fonctionne actuellement pas #####
 
 if __name__ == '__main__':
