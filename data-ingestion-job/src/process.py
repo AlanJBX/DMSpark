@@ -16,16 +16,17 @@ def main():
         description='Discover driving sessions into log files.')
     parser.add_argument('-l', "--fichier_logements", help='fichier entree logements', required=True)
     parser.add_argument('-e', "--fichier_ecoles", help='fichier entree ecoles', required=True)
-    parser.add_argument('-o', '--output', help='Output file', required=True) # Pour rajouter un paramètre de sortie
+    #parser.add_argument('-o', '--output', help='Output file', required=True) # Pour rajouter un paramètre de sortie
+    parser.add_argument('-r', "--argregion", help='argument de réduction de dataset', required=False)
 
     args = parser.parse_args()
 
     spark = SparkSession.builder.getOrCreate()
 
-    process(spark,args.fichier_logements,args.fichier_ecoles,args.output)
+    process(spark,args.fichier_logements,args.fichier_ecoles, args.argregion) #,args.output)
 
 
-def process(spark, fichier_logements, fichier_ecoles, output):
+def process(spark, fichier_logements, fichier_ecoles, argregion): #, output):
 
     ##############################
     # PRISE EN MAIN DES DATASETS #
@@ -68,6 +69,12 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     .withColumnRenamed('Position','position')\
     .withColumnRenamed('secteur_prive_code_type_contrat','secteur_prive_code_type_contrat')\
     .withColumnRenamed('secteur_prive_libelle_type_contrat','secteur_prive_libelle_type_contrat')
+
+    print("--------------------------")
+    if argregion != None:
+        ECL = ECL.where(ECL.region == argregion)
+        print("Appel de l'argument région")
+    print("--------------------------")
 
     #>>> ECL.printSchema()
     #root
@@ -228,9 +235,9 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     data_ecoles.write.parquet('/data/data_ecoles')
     ########################################
     # Pour ouvrir le fichier plus tard dans Spark : spark.read.parquet("./data/data_ecoles")
-    print("..........")
-    print("Sauvegarde")
-    print("..........")
+    print(".................")
+    print("Sauvegarde ecoles")
+    print(".................")
 
     #>>> data_ecoles.printSchema()
     #root
@@ -270,9 +277,9 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     data_log.write.parquet('/data/data_log')
     ########################################
     # Pour ouvrir le fichier plus tard dans Spark  : spark.read.parquet("./data/data_log")
-    print("..........")
-    print("Sauvegarde")
-    print("..........")
+    print("....................")
+    print("Sauvegarde logements")
+    print("....................")
 
     #>>> data_log.printSchema()
     #root
@@ -336,9 +343,9 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     data_cross.write.parquet('/data/data_cross')
     ########################################
     # Pour ouvrir le fichier plus tard : spark.read.parquet("./data/data_cross")
-    print("..........")
-    print("Sauvegarde")
-    print("..........")
+    print("................")
+    print("Sauvegarde cross")
+    print("................")
 
     # Je calcule le prix moyen des logements à 50km à la ronde des établissements
     moyenne_tarifs = data_cross.groupby(data_cross.code_etablissement).agg(F.mean(data_cross.prix_metre_carre).alias('moyenne_tarifs'))
@@ -349,18 +356,22 @@ def process(spark, fichier_logements, fichier_ecoles, output):
     moyenne_tarifs.write.parquet('/data/data_tarifs')
     ########################################
     # Pour ouvrir le fichier plus tard : spark.read.parquet("./data/data_tarifs")
-    print("..........")
-    print("Sauvegarde")
-    print("..........")
+    print(".................")
+    print("Sauvegarde tarifs")
+    print(".................")
 
     ##### Ce bloc de commande ne fonctionne actuellement pas #####
+    #
+    # Problème sur la gestion du min
     # On recherche les écoles les plus proches de chaque logement et on les unie dans une même table.
-    maternelle_proche = data_cross.where((data_cross.degre_etude == 'MATERNELLE') & (data_cross.distance == min(data_cross.distance)))
-    primaire_proche = data_cross.where((data_cross.Degre_etude == 'PRIMAIRE') & (data_cross.Distance == min(data_cross.Distance)))
-    college_proche = data_cross.where((data_cross.Degre_etude == 'COLLEGE') & (data_cross.Distance == min(data_cross.Distance)))
-    lycee_proche = data_cross.where((data_cross.Degre_etude == 'LYCEE') & (data_cross.Distance == min(data_cross.Distance)))
-    ecoles_proches = ((maternelle_proche.union(primaire_proche)).union(college_proche)).union(lycee_proche)
-    ecoles_proches.printSchema()
+    #maternelle_proche = data_cross.where((data_cross.degre_etude == 'MATERNELLE'))
+    #maternelle_proche = maternelle_proche.where(maternelle_proche.distance == min(maternelle_proche.distance))
+    #primaire_proche = data_cross.where((data_cross.Degre_etude == 'PRIMAIRE') & (data_cross.Distance == min(data_cross.Distance)))
+    #college_proche = data_cross.where((data_cross.Degre_etude == 'COLLEGE') & (data_cross.Distance == min(data_cross.Distance)))
+    #lycee_proche = data_cross.where((data_cross.Degre_etude == 'LYCEE') & (data_cross.Distance == min(data_cross.Distance)))
+    #ecoles_proches = ((maternelle_proche.union(primaire_proche)).union(college_proche)).union(lycee_proche)
+    #ecoles_proches.printSchema()
+    #
     ##### Ce bloc de commande ne fonctionne actuellement pas #####
 
 if __name__ == '__main__':
